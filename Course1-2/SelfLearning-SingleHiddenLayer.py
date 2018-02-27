@@ -324,3 +324,78 @@ print('W1 =', parameters['W1'])
 print('b1 =', parameters['b1'])
 print('W2 =', parameters['W2'])
 print('b2 =', parameters['b2'])
+
+
+# -------------------------------------------------------------
+# 4.5. Predictions: Use model to predict by building predict()
+# -------------------------------------------------------------
+def predict(parameters , X):
+    '''
+    Using the learned parameters, predicts a class for each example in X
+    Arguments:
+    parameters -- python dictionary containing parameters
+    X -- input data of size (x_n, m)
+    Returns:
+    predictions -- vector of predictions of model (red:0 / blue:1)
+    '''
+
+    # Computes probabilities using forward propagation, and classifies to 0/1 using 0.5 as the threshold.
+    A2, cache = forward_propagation(X, parameters)
+    predictions = np.around(A2)
+
+    return predictions
+
+# Generate the test data, then test the function
+parameters, X_assess = predict_test_case()
+predictions = predict(parameters, X_assess)
+print('predictions mean =', np.mean(predictions))
+
+
+
+# ----------------------------------------------------------------------------------------
+# 5. Use planar dataset to train the model with a single hidden layer of n_h hidden units
+# ----------------------------------------------------------------------------------------
+parameters = nn_model(X, Y, n_h=4, num_iterations=10000, print_cost=True)
+plot_decision_boundary(lambda x: predict(parameters, x.T), X, Y.ravel())
+plt.title('Decision boundary for hidden layer size: 4')
+plt.show()
+# Print the accuracy
+predictions = predict(parameters, X)
+print ('Accuracy: {0}%'.format(float((np.dot(Y,predictions.T) + np.dot(1-Y,1-predictions.T))/float(Y.size)*100)))
+
+
+# -----------------------------
+# 6. Tuning hidden layer size
+# -----------------------------
+plt.figure(figsize=(16, 32))
+hidden_layer_size = [1, 2, 3, 4, 5, 10, 20, 40]
+for i, n_h in enumerate(hidden_layer_size):
+    plt.subplot(5, 2, i+1)
+    plt.title('Hidden layer of size {0}'.format(n_h))
+    parameters = nn_model(X, Y, n_h, num_iterations=5000)
+    plot_decision_boundary(lambda x: predict(parameters, x.T), X, Y.ravel())
+    predictions = predict(parameters, X)
+    accuracy = float((np.dot(Y, predictions.T) + np.dot(1-Y, 1-predictions.T)) / float(Y.size) * 100)
+    print('Accuracy for {0} hidden unit: {1}%'.format(n_h, accuracy))
+plt.show()
+
+
+
+# -----------------------------
+# 7. Perform on other datasets
+# -----------------------------
+
+noisy_circles, noisy_moons, blobs, gaussian_quantiles, no_structure = load_extra_datasets()
+datasets = {'noisy_circles':noisy_circles, 'noisy_moons':noisy_moons, 'blobs':blobs, 'gaussian_quantiles':gaussian_quantiles}
+# choose one dataset
+dataset = 'gaussian_quantiles'
+X, Y = datasets[dataset]
+X, Y = X.T, Y.reshape(1, Y.shape[0])
+
+# make blobs binary
+if dataset == 'blobs':
+    Y = Y % 2
+
+# Visualize the data
+plt.scatter(X[0, :], X[1, :], c=Y, s=40, cmap=plt.cm.Spectral)
+plt.show()
