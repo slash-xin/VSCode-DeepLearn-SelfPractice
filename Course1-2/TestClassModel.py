@@ -21,7 +21,7 @@ def Test1():
     plt.title('Decision boundary for hidden layer size: 5')
     plt.show()
 
-Test1()
+#Test1()
 
 
 def Test2():
@@ -44,11 +44,14 @@ def Test2():
 
     model = SingleHiddenLayer(5, 0.2)
     model.initializeData(X, Y)
-    model.train_model(num_iterations=10000)
-    predictions = model.predict(X)
-    print ('Accuracy: {0}%'.format(float((np.dot(Y,predictions.T) + np.dot(1-Y,1-predictions.T))/float(Y.size)*100)))
-    plot_decision_boundary(lambda x: model.predict(x.T), X, Y.ravel())
-    plt.title('Decision boundary for hidden layer size: 5')
-    plt.show()
+
+    list_iterations = [500, 1000, 1500, 2000, 2500, 3000]
+    for i, iterations in enumerate(list_iterations):
+        model.train_model(num_iterations=iterations)
+        predictions = model.predict(X)
+        print ('Accuracy: {0}%'.format(float((np.dot(Y,predictions.T) + np.dot(1-Y,1-predictions.T))/float(Y.size)*100)))
+        plot_decision_boundary(lambda x: model.predict(x.T), X, Y.ravel())
+        plt.title('Decision boundary for 5 hidden units for Iteration: {0}'.format(iterations))
+        plt.show()
 
 Test2()
