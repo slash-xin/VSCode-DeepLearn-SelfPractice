@@ -174,3 +174,44 @@ A, linear_activation_cache = linear_activation_forward(A_prev, W, b, 'sigmoid')
 print('with sigmoid: A=', A)
 A, linear_activation_cache = linear_activation_forward(A_prev, W, b, 'relu')
 print('with relu: A=', A)
+
+
+
+# L-Layer Model: write a function that replicates the previous one (linear_activation_forward with RELU)
+# L-1 time.
+def L_model_forward(X, parameters):
+    '''
+    Implement forward propgation for the [LINEAR-RELU]*(L-1)->LINER->SIGMOID computation
+
+    Arguments:
+    X -- data, numpy array of shape (input size, number of example)
+    parameters -- output of initialize_parameters_deep()
+
+    Returns:
+    AL -- last post-activation value
+    caches -- list of caches containing:
+                 every cache of linear_relu_forward() (there are L-1 of them, indexed from 0 to L-2)
+                 the cache of linear_sigmoid_forward() (there is one, index L-1)
+    '''
+
+    caches = []
+    A = X
+    L = len(parameters) // 2 # number of layers in the neural network
+
+    # Implement [LINEAR -> RELU]*(L-1). Add 'cache' to the 'caches' list
+    for l in range(1, L):
+        A_prev = A
+        A, cache = linear_activation_forward(A_prev, parameters['W'+str(l)], parameters['b'+str(l)], 'relu')
+        caches.append(cache)
+    
+    # Implement LINEAR -> SIGMOID. Add 'cache' to the 'caches' list.
+    AL, cache = linear_activation_forward(A, parameters['W'+str(L)], parameters['b'+str(L)], 'sigmoid')
+    caches.append(cache)
+
+    return AL, caches
+
+# Test the function
+X, parameters = L_model_forward_test_case()
+AL, caches = L_model_forward(X, parameters)
+print('AL =', AL)
+print('caches =', caches)
