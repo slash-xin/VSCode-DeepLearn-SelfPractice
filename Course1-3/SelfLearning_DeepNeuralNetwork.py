@@ -9,18 +9,9 @@
 # 1. Package Import
 # ----------------------
 import numpy as np
-import h5py
-import matplotlib.pyplot as plt
 from testCases_v2 import *
 from dnn_utils_v2 import sigmoid, sigmoid_backward, relu, relu_backward
 
-# Magic Function
-#%matplotlib inline
-
-# set default configuration of plots
-plt.rcParams['figure.figsize'] = (5.0, 4.0)
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
 
 # Magic Function
 #%load_ext autoreload
@@ -406,3 +397,71 @@ print('W1 =', parameters['W1'])
 print('b1 =', parameters['b1'])
 print('W2 =', parameters['W2'])
 print('b2 =', parameters['b2'])
+
+
+
+
+
+
+
+
+
+# -------------------------------------------------------------------
+# Deep Neural Network for Image Classification: Application
+# ---------------------------------------- --------------------------
+# Import the packages
+import time
+import numpy as np
+import h5py
+import matplotlib.pyplot as plt
+import scipy
+from PIL import Image
+from scipy import ndimage
+
+# Magic Function
+#%matplotlib inline
+
+# set default configuration of plots
+plt.rcParams['figure.figsize'] = (5.0, 4.0)
+plt.rcParams['image.interpolation'] = 'nearest'
+plt.rcParams['image.cmap'] = 'gray'
+
+np.random.seed(1)
+
+# Load Dataset
+def load_data(path):
+    train_dataset = h5py.File('{0}/train_catvnoncat.h5'.format(path), "r")
+    train_set_x_orig = np.array(train_dataset["train_set_x"][:]) # your train set features
+    train_set_y_orig = np.array(train_dataset["train_set_y"][:]) # your train set labels
+
+    test_dataset = h5py.File('{0}/test_catvnoncat.h5'.format(path), "r")
+    test_set_x_orig = np.array(test_dataset["test_set_x"][:]) # your test set features
+    test_set_y_orig = np.array(test_dataset["test_set_y"][:]) # your test set labels
+
+    classes = np.array(test_dataset["list_classes"][:]) # the list of classes
+    
+    train_set_y_orig = train_set_y_orig.reshape((1, train_set_y_orig.shape[0]))
+    test_set_y_orig = test_set_y_orig.reshape((1, test_set_y_orig.shape[0]))
+    
+    return train_set_x_orig, train_set_y_orig, test_set_x_orig, test_set_y_orig, classes
+
+train_x_orig, train_y, test_x_orig, test_y, classes =load_data('D:/JupyterNotebook/DeepLearning/deeplearning.ai-master/course1/assignment1-4/assignment4/datasets')
+
+# Show a picture
+index = 8
+plt.imshow(train_x_orig[index])
+plt.show()
+print("y ={0}. It's a {1} picture".format(train_y[0, index], classes[train_y[0, index]].decode()))
+
+# Explorer dataset
+m_train = train_x_orig.shape[0]
+num_px = train_x_orig.shape[1]
+m_test = test_x_orig.shape[0]
+
+print("Number of training examples: ", m_train)
+print("Number of testing examples: ", m_test)
+print("Each image is of size: (", num_px, num_px,  ", 3)")
+print("train_x_orig shape: ", train_x_orig.shape)
+print("train_y shape: ", train_y.shape)
+print("test_x_orig shape: ", test_x_orig.shape)
+print("test_y shape: ", test_y.shape)
