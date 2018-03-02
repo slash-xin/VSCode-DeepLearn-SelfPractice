@@ -342,7 +342,7 @@ def L_model_backward(AL, Y, caches):
     #m = AL.shape[1] # number of examples
     Y = Y.reshape(AL.shape) # after this line, Y is same shape as AL
 
-    dAL = -(np.divide(Y, AL)) - np.divide(1-Y, 1-AL)
+    dAL = -(np.divide(Y, AL) - np.divide(1-Y, 1-AL))
 
     current_cache = caches[L-1]
     grads['dA'+str(L)], grads['dW'+str(L)], grads['db'+str(L)] = linear_activation_backward(dAL, current_cache, 'sigmoid')
@@ -646,3 +646,14 @@ layers_dims = [12288, 20, 7, 5, 1] #  5-layer model
 parameters = L_layer_model(train_x, train_y, layer_dims, num_iterations=2500, print_cost=True)
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
+
+
+
+# Use my pic to test model
+my_image = 'course1-3/images/cat.jpg'
+my_image_label = [1]
+image = np.array(ndimage.imread(my_image, flatten=False))
+my_image = scipy.misc.imresize(image, size=(num_px, num_px)).reshape((num_px*num_px*3, 1))
+my_image_predict = predict(my_image, my_image_label, parameters)
+plt.imshow(image)
+print('y ={0}, L-Layer model predicts a {1}'.format(np.squeeze(my_image_label), classes[int(np.squeeze(my_image_predict))].decode()))
