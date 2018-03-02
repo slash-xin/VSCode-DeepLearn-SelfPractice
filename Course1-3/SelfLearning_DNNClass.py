@@ -24,7 +24,7 @@ class DnnBinaryClassifierClass:
         '''
         self.train_x = train_x
         self.train_y = train_y
-        self.train_data_size = train_x[1]
+        self.train_data_size = train_x.shape[1]
 
     def InitializeModel(self, layer_dims, layer_activations):
         '''
@@ -139,6 +139,8 @@ class DnnBinaryClassifierClass:
         # number of layers (exclude input layer)
         L = len(self.parameters) // 2
         for l in range(L):
+            print('---------------', self.parameters['W'+str(l+1)].shape)
+            print('---------------', self.grads['dW'+str(l+1)].shape)
             self.parameters['W' + str(l+1)] -= learning_rate * self.grads['dW' + str(l+1)]
             self.parameters['b' + str(l+1)] -= learning_rate * self.grads['db' + str(l+1)]
     
