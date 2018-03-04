@@ -31,10 +31,10 @@ train_x = train_x_flatten / 255.
 test_x = test_x_flatten / 255.
 
 
-layer_dims = (12288, 20, 7, 5, 1)
-layer_activations = ('relu', 'tanh', 'relu')
+layer_dims = (12288, 5, 1)
+layer_activations = ['relu']
 
 model = DnnBinaryClassifierClass()
 model.InitializeTrainData(train_x, train_y)
 model.InitializeModel(layer_dims, layer_activations)
-model.TrainModel(num_iterations=100, print_cost=True)
+model.TrainModel(num_iterations=1, print_cost=True)

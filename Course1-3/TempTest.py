@@ -22,45 +22,6 @@ np.random.seed(1)
 
 
 
-# --------------------------------------------------------------------------------------------
-# 2. Initialization: two helper functions that will initialize the parameters for the model.
-#    The first function will be used to initialize parameters for a two layer model.
-#    The second function will be used to initialize parameters for a L layer model.
-# --------------------------------------------------------------------------------------------
-# 2.1. 2-layer Neural Network
-def initialize_parameters(n_x, n_h, n_y):
-    '''
-    Arguments:
-    n_x -- size of the input layer
-    n_h -- size of the hidden layer
-    n_y -- size of the outpu layer
-
-    Returns:
-    paramters -- python dictionary containing the parameters:
-                   W1 -- weight matrix of shape (n_h, n_x)
-                   b1 -- bais vector of shape (n_h, 1)
-                   W2 -- wight matrix of shape (n_y, n_h)
-                   b2 -- bais vector of shape (n_y, 1)
-    '''
-    np.random.seed(1)
-
-    W1 = np.random.randn(n_h, n_x) * 0.01
-    b1 = np.zeros((n_h, 1))
-    W2 = np.random.randn(n_y, n_h)
-    b2 = np.zeros((n_y, 1))
-
-    parameters = {'W1':W1, 'b1':b1, 'W2':W2, 'b2':b2}
-
-    return parameters
-
-# Test function
-parameters = initialize_parameters(2, 2, 1)
-print('W1 =', parameters['W1'])
-print('b1 =', parameters['b1'])
-print('W2 =', parameters['W2'])
-print('b2 =', parameters['b2'])
-
-
 # --------------------------------
 # 2.2. L-layer Neural Network
 # --------------------------------
@@ -84,14 +45,6 @@ def initialize_parameters_deep(layer_dims):
         parameters['b' + str(l)] = np.zeros((layer_dims[l], 1))
     
     return parameters
-
-# Test the funcion
-parameters = initialize_parameters_deep([5, 4, 3])
-print('W1 =', parameters['W1'])
-print('b1 =', parameters['b1'])
-print('W2 =', parameters['W2'])
-print('b2 =', parameters['b2'])
-
 
 
 
@@ -122,12 +75,6 @@ def linear_forward(A, W, b):
 
     return Z, cache
 
-# Test the function
-A, W, b = linear_forward_test_case()
-Z, linear_cache = linear_forward(A, W, b)
-print('Z =', Z)
-print('linear_cache =', linear_cache)
-
 
 # --------------------------------
 # 3.1. Linear-Activation Forward
@@ -157,14 +104,6 @@ def linear_activation_forward(A_prev, W, b, activation):
     
     cache = (linear_cache, activation_cache)
     return A, cache
-
-# Test the function
-A_prev, W, b = linear_activation_forward_test_case()
-
-A, linear_activation_cache = linear_activation_forward(A_prev, W, b, 'sigmoid')
-print('with sigmoid: A=', A)
-A, linear_activation_cache = linear_activation_forward(A_prev, W, b, 'relu')
-print('with relu: A=', A)
 
 
 
@@ -201,12 +140,6 @@ def L_model_forward(X, parameters):
 
     return AL, caches
 
-# Test the function
-X, parameters = L_model_forward_test_case()
-AL, caches = L_model_forward(X, parameters)
-print('AL =', AL)
-print('caches =', caches)
-
 
 
 
@@ -228,12 +161,6 @@ def compute_cost(AL, Y):
     cost = np.squeeze(cost)
 
     return cost
-
-# Test the function
-Y, AL = compute_cost_test_case()
-cost = compute_cost(AL, Y)
-print('cost =', cost)
-
 
 
 # -----------------------------------------------------------------------------------------------------------
@@ -261,18 +188,13 @@ def linear_backward(dZ, cache):
     A_prev, W, b = cache
     m = A_prev.shape[1]
 
+    print('===================== shape of A_prev:', A_prev.shape)
+
     dW = 1.0 / m * np.dot(dZ, A_prev.T)
     db = 1.0 / m * np.sum(dZ, axis=1, keepdims=True)
     dA_prev = np.dot(W.T, dZ)
 
     return dA_prev, dW, db
-
-# Test the function
-dZ, linear_cache = linear_backward_test_case()
-dA_prev, dW, db = linear_backward(dZ, linear_cache)
-print('dA_prev =', dA_prev)
-print('dW =', dW)
-print('db =', db)
 
 # ---------------------------------
 # 5.2. Linear-Activation backward
@@ -299,22 +221,12 @@ def linear_activation_backward(dA, cache, activation):
         dZ = sigmoid_backward(dA, activation_cache)
         dA_prev, dW, db = linear_backward(dZ, linear_cache)
     
+    print('===================== shape of dZ:', dZ.shape)
+    print('===================== shape of dW:', dW.shape)
+    print('===================== shape of db:', db.shape)
+    print('===================== shape of dA_prev:', dA_prev.shape)
+    
     return dA_prev, dW, db
-
-# Test the function
-AL, linear_activation_cache = linear_activation_backward_test_case()
-
-dA_prev, dW, db = linear_activation_backward(AL, linear_activation_cache, 'sigmoid')
-print('sigmoid:')
-print('dA_prev =', dA_prev)
-print('dW =', dW)
-print('db =', db)
-
-dA_prev, dW, db = linear_activation_backward(AL, linear_activation_cache, 'relu')
-print('relu:')
-print('dA_prev =', dA_prev)
-print('dW =', dW)
-print('db =', db)
 
 
 # ---------------------------------
@@ -344,8 +256,14 @@ def L_model_backward(AL, Y, caches):
 
     dAL = -(np.divide(Y, AL) - np.divide(1-Y, 1-AL))
 
+    print('=====================BackwardPropagation: dAL, shape:', dAL.shape)
     current_cache = caches[L-1]
+    print('==================Current Cache============', len(current_cache))
     grads['dA'+str(L)], grads['dW'+str(L)], grads['db'+str(L)] = linear_activation_backward(dAL, current_cache, 'sigmoid')
+
+    #print('=====================BackwardPropagation: dA{0}, shape:{1}'.format(L, grads['dA'+str(L)].shape))
+    #print('=====================BackwardPropagation: dW{0}, shape:{1}'.format(L, grads['dW'+str(L)].shape))
+    #print('=====================BackwardPropagation: db{0}, shape:{1}'.format(L, grads['db'+str(L)].shape))
 
     for l in reversed(range(L-1)):
         current_cache = caches[l]
@@ -355,14 +273,6 @@ def L_model_backward(AL, Y, caches):
         grads['db'+str(l+1)] = db_temp
     
     return grads
-
-# Test the function
-AL, Y_assess, caches = L_model_backward_test_case()
-grads = L_model_backward(AL, Y_assess, caches)
-print ("dW1 = ", grads["dW1"])
-print ("db1 = ", grads["db1"])
-print ("dA1 = ", grads["dA1"])
-
 
 
 # ---------------------------------
@@ -390,13 +300,6 @@ def update_parameters(parameters, grads, learning_rate):
     
     return parameters
 
-# Test the function
-parameters, grads = update_parameters_test_case()
-parameters = update_parameters(parameters, grads, 0.1)
-print('W1 =', parameters['W1'])
-print('b1 =', parameters['b1'])
-print('W2 =', parameters['W2'])
-print('b2 =', parameters['b2'])
 
 
 # ---------------------------------
@@ -453,15 +356,7 @@ import scipy
 from PIL import Image
 from scipy import ndimage
 
-# Magic Function
-#%matplotlib inline
 
-# set default configuration of plots
-plt.rcParams['figure.figsize'] = (5.0, 4.0)
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
-
-np.random.seed(1)
 
 # Load Dataset
 def load_data(path):
@@ -482,24 +377,6 @@ def load_data(path):
 
 train_x_orig, train_y, test_x_orig, test_y, classes =load_data('course1-3/datasets')
 
-# Show a picture
-index = 8
-plt.imshow(train_x_orig[index])
-plt.show()
-print("y ={0}. It's a {1} picture".format(train_y[0, index], classes[train_y[0, index]].decode()))
-
-# Explorer dataset
-m_train = train_x_orig.shape[0]
-num_px = train_x_orig.shape[1]
-m_test = test_x_orig.shape[0]
-
-print("Number of training examples: ", m_train)
-print("Number of testing examples: ", m_test)
-print("Each image is of size: (", num_px, num_px,  ", 3)")
-print("train_x_orig shape: ", train_x_orig.shape)
-print("train_y shape: ", train_y.shape)
-print("test_x_orig shape: ", test_x_orig.shape)
-print("test_y shape: ", test_y.shape)
 
 # Reshape the training and test data
 train_x_flatten = train_x_orig.reshape(train_x_orig.shape[0], -1).T
@@ -512,12 +389,6 @@ test_x = test_x_flatten / 255.
 print('shape of train_x:', train_x.shape)
 print('shape of test_x:', test_x.shape)
 
-# Architecture a 2-layer neural network model
-# CONSTANTS DEFINITION THE MODEL
-n_x = 12288
-n_h = 7
-n_y = 1
-layer_dims = (n_x, n_h, n_y)
 
 # two layer model
 def two_layer_model(X, Y, layer_dims, learning_rate=0.0075, num_iterations=3000, print_cost=False):
@@ -542,7 +413,7 @@ def two_layer_model(X, Y, layer_dims, learning_rate=0.0075, num_iterations=3000,
     (n_x, n_h, n_y) = layer_dims
 
     # Initialize the parameters
-    parameters = initialize_parameters(n_x, n_h, n_y)
+    #parameters = initialize_parameters(n_x, n_h, n_y)
 
     # Get W1, b1, W2, b2 from the dictionary parameters
     W1 = parameters['W1']
@@ -622,39 +493,24 @@ def L_layer_model(X, Y, layer_dims, learning_rate=0.009, num_iterations=3000, pr
     for i in range(0, num_iterations):
         # Forward Propagation
         AL, caches = L_model_forward(X, parameters)
+        print('--------Test-----AL[0]:', AL.shape)
         # Compute cost
         cost = compute_cost(AL, Y)
         # Backward Propagation
         grads = L_model_backward(AL, Y, caches)
         # Update Parameters
-        parameters = update_parameters(parameters, grads, learning_rate)
+        #parameters = update_parameters(parameters, grads, learning_rate)
 
         if i % 100 == 0:
             costs.append(np.squeeze(cost))
             if print_cost:
                 print('Cost after iteration {0}: {1}'.format(i, cost))
-        
-    plt.plot(costs)
-    plt.ylabel('Cost')
-    plt.xlabel('iterations (per tens)')
-    plt.title('Learning rate=' + str(learning_rate))
-    plt.show()
-
     return parameters
 
+
+
+
 #layers_dims = [12288, 20, 7, 5, 1] #  5-layer model
-layers_dims = [12288, 5, 1] #  5-layer model
-parameters = L_layer_model(train_x, train_y, layer_dims, num_iterations=1, print_cost=True)
-predictions_train = predict(train_x, train_y, parameters)
-predictions_test = predict(test_x, test_y, parameters)
+layers_dims = [12288, 5, 1]
+parameters = L_layer_model(train_x, train_y, layers_dims, num_iterations=1, print_cost=True)
 
-
-
-# Use my pic to test model
-my_image = 'course1-3/images/cat.jpg'
-my_image_label = [1]
-image = np.array(ndimage.imread(my_image, flatten=False))
-my_image = scipy.misc.imresize(image, size=(num_px, num_px)).reshape((num_px*num_px*3, 1))
-my_image_predict = predict(my_image, my_image_label, parameters)
-plt.imshow(image)
-print('y ={0}, L-Layer model predicts a {1}'.format(np.squeeze(my_image_label), classes[int(np.squeeze(my_image_predict))].decode()))

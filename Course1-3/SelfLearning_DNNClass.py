@@ -31,17 +31,18 @@ class DnnBinaryClassifierClass:
         '''
         self.layer_dims = layer_dims
         self.layer_activations = layer_activations
+        # number of layers (exclude the input layer)
+        self.L = len(layer_dims) - 1
     
     def InitializeParameters(self):
         '''
         '''
-        # number of layers (include the input layer).
-        L = len(self.layer_dims)
+        np.random.seed(3)
         # Initialize the matrix W and b for hidden layers and output layer
-        for l in range(1, L):
+        for l in range(1, self.L + 1):
             self.parameters['W' + str(l)] = np.random.randn(self.layer_dims[l], self.layer_dims[l-1]) * 0.01
             self.parameters['b' + str(l)] = np.zeros((self.layer_dims[l], 1))
-    
+       
     def __sigmoid(self, Z):
         A = 1 / (1 + np.exp(-Z))
         return A
@@ -56,6 +57,8 @@ class DnnBinaryClassifierClass:
         '''
         '''
         Z = np.dot(W, A) + b
+        cache = ((A, W, b), Z)
+
         if activation == 'sigmoid':            
             A = self.__sigmoid(Z)            
         elif activation == 'relu':
@@ -63,24 +66,21 @@ class DnnBinaryClassifierClass:
         elif activation == 'tanh':
             A = self.__tanh(Z)
         
-        cache = ((A, W, b), Z)
         return A, cache
 
     
     def ForwardPropagation(self):
         A = self.train_x
-        # number of layers in the neural network (exclude the input layer)
-        L = len(self.parameters) // 2
         # Implement forward propagation for hidden layers
-        for l in range(1, L):
+        for l in range(1, self.L):
             A_prev = A
             A, cache = self.__activation_forward(A_prev, self.parameters['W'+str(l)], self.parameters['b'+str(l)], self.layer_activations[l-1])
             self.caches.append(cache)
 
         # Implement forward propagation for output layer
-        self.AL, cache = self.__activation_forward(A, self.parameters['W'+str(L)], self.parameters['b'+str(L)], 'sigmoid')
+        self.AL, cache = self.__activation_forward(A, self.parameters['W'+str(self.L)], self.parameters['b'+str(self.L)], 'sigmoid')
         self.caches.append(cache)
-    
+ 
     def ComputeCost(self):
         '''
         '''
@@ -101,7 +101,7 @@ class DnnBinaryClassifierClass:
     def __tanh_backward(self, dA, cache):
         Z = cache
         t = np.tanh(Z)
-        dZ = 1 - np.power(t, 2)
+        dZ = dA * (1 - np.power(t, 2))
         return dZ
     
     def __activation_backward(self, dA, cache, activation):
@@ -113,34 +113,47 @@ class DnnBinaryClassifierClass:
             dZ = self.__sigmoid_backward(dA, activation_cache)
         elif activation == 'tanh':
             dZ = self.__tanh_backward(dA, activation_cache)
-
+        
         A_prev, W, b = linear_cache
         dW = 1.0 / self.train_data_size * np.dot(dZ, A_prev.T)
         db = 1.0 / self.train_data_size * np.sum(dZ, axis=1, keepdims=True)
         dA_prev = np.dot(W.T, dZ)
 
+        print('===================== shape of A_prev:', A_prev.shape)
+        print('===================== shape of dZ:', dZ.shape)        
+        print('===================== shape of dW:', dW.shape)
+        print('===================== shape of db:', db.shape)
+        print('===================== shape of dA_prev:', dA_prev.shape)
+
         return dA_prev, dW, db
     
     def BackwardPropagation(self):
-        # number of layers (exclude input layer)
-        L = len(self.caches)
-
         # derivative of cost function with AL
         dAL = -(np.divide(self.train_y, self.AL) - np.divide(1 - self.train_y, 1 - self.AL))
 
-        current_cache = self.caches[L-1]
-        self.grads['dA' + str(L)], self.grads['dW'+str(L)], self.grads['db'+str(L)] = self.__activation_backward(dAL, current_cache, 'sigmoid')
+        print('=====================BackwardPropagation: dAL, shape:', dAL.shape)
 
-        for l in reversed(range(L-1)):
+        current_cache = self.caches[self.L - 1]
+        print('==================Current Cache============', len(current_cache))
+        self.grads['dA' + str(self.L)], self.grads['dW'+str(self.L)], self.grads['db'+str(self.L)] = self.__activation_backward(dAL, current_cache, 'sigmoid')
+
+        #print('=====================BackwardPropagation: dA{0}, shape:{1}'.format(self.L, self.grads['dA'+str(self.L)].shape))
+        #print('=====================BackwardPropagation: dW{0}, shape:{1}'.format(self.L, self.grads['dW'+str(self.L)].shape))
+        #print('=====================BackwardPropagation: db{0}, shape:{1}'.format(self.L, self.grads['db'+str(self.L)].shape))
+        
+        for l in reversed(range(self.L-1)):
             current_cache = self.caches[l]
             self.grads['dA'+str(l+1)], self.grads['dW'+str(l+1)], self.grads['db'+str(l+1)] = self.__activation_backward(self.grads['dA'+str(l+2)], current_cache, self.layer_activations[l])
 
+            #print('=====================BackwardPropagation: dA{0}, shape:{1}'.format(l+1, self.grads['dA'+str(l+1)].shape))
+            #print('=====================BackwardPropagation: dW{0}, shape:{1}'.format(l+1, self.grads['dW'+str(l+1)].shape))
+            #print('=====================BackwardPropagation: db{0}, shape:{1}'.format(l+1, self.grads['db'+str(l+1)].shape))
+
     def UpdateParameters(self, learning_rate):
         # number of layers (exclude input layer)
-        L = len(self.parameters) // 2
-        for l in range(L):
-            print('---------------', self.parameters['W'+str(l+1)].shape)
-            print('---------------', self.grads['dW'+str(l+1)].shape)
+        for l in range(self.L):
+            print('---------------shape of W{0}: {1}'.format(l+1, self.parameters['W'+str(l+1)].shape))
+            print('---------------shape if dW{0}: {1}'.format(l+1, self.grads['dW'+str(l+1)].shape))
             self.parameters['W' + str(l+1)] -= learning_rate * self.grads['dW' + str(l+1)]
             self.parameters['b' + str(l+1)] -= learning_rate * self.grads['db' + str(l+1)]
     
@@ -150,9 +163,10 @@ class DnnBinaryClassifierClass:
 
         for i in range(num_iterations):
             self.ForwardPropagation()
+            print('----------Test-------AL[0]', self.AL.shape)
             cost = self.ComputeCost()
             self.BackwardPropagation()
-            self.UpdateParameters(learning_rate)
+            #self.UpdateParameters(learning_rate)
 
             if i % 100 == 0:
                 self.costs.append(np.squeeze(cost))
