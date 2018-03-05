@@ -42,11 +42,11 @@ def initialize_parameters(n_x, n_h, n_y):
                    W2 -- wight matrix of shape (n_y, n_h)
                    b2 -- bais vector of shape (n_y, 1)
     '''
-    np.random.seed(1)
+    np.random.seed(3)
 
     W1 = np.random.randn(n_h, n_x) * 0.01
     b1 = np.zeros((n_h, 1))
-    W2 = np.random.randn(n_y, n_h)
+    W2 = np.random.randn(n_y, n_h) * 0.01
     b2 = np.zeros((n_y, 1))
 
     parameters = {'W1':W1, 'b1':b1, 'W2':W2, 'b2':b2}
@@ -591,7 +591,7 @@ def two_layer_model(X, Y, layer_dims, learning_rate=0.0075, num_iterations=3000,
 
     return parameters
 
-#parameters = two_layer_model(train_x, train_y, layer_dims, num_iterations=2500, print_cost=True)
+parameters = two_layer_model(train_x, train_y, layer_dims, num_iterations=2500, print_cost=True)
 
 # predict
 #predictions_train = predict(train_x, train_y, parameters)
@@ -629,7 +629,7 @@ def L_layer_model(X, Y, layer_dims, learning_rate=0.009, num_iterations=3000, pr
         # Update Parameters
         parameters = update_parameters(parameters, grads, learning_rate)
 
-        if i % 100 == 0:
+        if i % 1 == 0:
             costs.append(np.squeeze(cost))
             if print_cost:
                 print('Cost after iteration {0}: {1}'.format(i, cost))
@@ -644,7 +644,7 @@ def L_layer_model(X, Y, layer_dims, learning_rate=0.009, num_iterations=3000, pr
 
 #layers_dims = [12288, 20, 7, 5, 1] #  5-layer model
 layers_dims = [12288, 5, 1] #  5-layer model
-parameters = L_layer_model(train_x, train_y, layer_dims, num_iterations=1, print_cost=True)
+parameters = L_layer_model(train_x, train_y, layer_dims, num_iterations=10, print_cost=True)
 predictions_train = predict(train_x, train_y, parameters)
 predictions_test = predict(test_x, test_y, parameters)
 

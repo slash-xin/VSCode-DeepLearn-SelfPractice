@@ -37,4 +37,4 @@ layer_activations = ['relu']
 model = DnnBinaryClassifierClass()
 model.InitializeTrainData(train_x, train_y)
 model.InitializeModel(layer_dims, layer_activations)
-model.TrainModel(num_iterations=1, print_cost=True)
+model.TrainModel(num_iterations=2500, print_cost=True)

@@ -120,22 +120,43 @@ class DnnBinaryClassifierClass:
         db = 1.0 / self.train_data_size * np.sum(dZ, axis=1, keepdims=True)
         dA_prev = np.dot(W.T, dZ)
 
+        #print('===================== shape of A_prev:', A_prev.shape)
+        #print('===================== shape of dZ:', dZ.shape)        
+        #print('===================== shape of dW:', dW.shape)
+        #print('===================== shape of db:', db.shape)
+        #print('===================== shape of dA_prev:', dA_prev.shape)
+
         return dA_prev, dW, db
     
     def BackwardPropagation(self):
         # derivative of cost function with AL
         dAL = -(np.divide(self.train_y, self.AL) - np.divide(1 - self.train_y, 1 - self.AL))
 
+        #print('=====================BackwardPropagation: AL:', self.AL[0][:5])
+        #print('=====================BackwardPropagation: Y:', self.train_y[0][:5])
+        #print('=====================BackwardPropagation: dAL:', dAL[0][:5])
+
         current_cache = self.caches[self.L - 1]
+        #print('==================Current Cache============', current_cache[0][0][:5])
         self.grads['dA' + str(self.L)], self.grads['dW'+str(self.L)], self.grads['db'+str(self.L)] = self.__activation_backward(dAL, current_cache, 'sigmoid')
+
+        #print('=====================BackwardPropagation: dA{0}, shape:{1}'.format(self.L, self.grads['dA'+str(self.L)].shape))
+        #print('=====================BackwardPropagation: dW{0}, shape:{1}'.format(self.L, self.grads['dW'+str(self.L)].shape))
+        #print('=====================BackwardPropagation: db{0}, shape:{1}'.format(self.L, self.grads['db'+str(self.L)].shape))
         
         for l in reversed(range(self.L-1)):
             current_cache = self.caches[l]
             self.grads['dA'+str(l+1)], self.grads['dW'+str(l+1)], self.grads['db'+str(l+1)] = self.__activation_backward(self.grads['dA'+str(l+2)], current_cache, self.layer_activations[l])
 
+            #print('=====================BackwardPropagation: dA{0}, shape:{1}'.format(l+1, self.grads['dA'+str(l+1)].shape))
+            #print('=====================BackwardPropagation: dW{0}, shape:{1}'.format(l+1, self.grads['dW'+str(l+1)].shape))
+            #print('=====================BackwardPropagation: db{0}, shape:{1}'.format(l+1, self.grads['db'+str(l+1)].shape))
+
     def UpdateParameters(self, learning_rate):
         # number of layers (exclude input layer)
         for l in range(self.L):
+            #print('---------------shape of W{0}: {1}'.format(l+1, self.parameters['W'+str(l+1)].shape))
+            #print('---------------shape if dW{0}: {1}'.format(l+1, self.grads['dW'+str(l+1)].shape))
             self.parameters['W' + str(l+1)] -= learning_rate * self.grads['dW' + str(l+1)]
             self.parameters['b' + str(l+1)] -= learning_rate * self.grads['db' + str(l+1)]
     
@@ -145,9 +166,19 @@ class DnnBinaryClassifierClass:
 
         for i in range(num_iterations):
             self.ForwardPropagation()
+            #print('---L Layer Model---AL[0]:', self.AL[0][:5])
             cost = self.ComputeCost()
+            #print('---L Layer Model---Cost after iteration {0}: {1}'.format(i, cost))
             self.BackwardPropagation()
+            #print('---L Layer Model---dW2', self.grads['dW2'][0])
+            #print('---L Layer Model---db2', self.grads['db2'][0])
+            #print('---L Layer Model---dW1', self.grads['dW1'][0][:5])
+            #print('---L Layer Model---db1', self.grads['db1'][0])
             self.UpdateParameters(learning_rate)
+            #print('---L Layer Model---After Update W2', self.parameters['W2'][0])
+            #print('---L Layer Model---After Update b2', self.parameters['b2'][0])
+            #print('---L Layer Model---After Update W1', self.parameters['W1'][0][:5])
+            #print('---L Layer Model---After Update b1', self.parameters['b1'][0])
 
             if i % 100 == 0:
                 self.costs.append(np.squeeze(cost))
