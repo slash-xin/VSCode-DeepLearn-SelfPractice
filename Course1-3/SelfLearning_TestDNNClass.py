@@ -31,7 +31,7 @@ train_x = train_x_flatten / 255.
 test_x = test_x_flatten / 255.
 
 
-layer_dims = (12288, 5, 1)
+layer_dims = [5]
 layer_activations = ['relu']
 
 model = DnnBinaryClassifierClass()
