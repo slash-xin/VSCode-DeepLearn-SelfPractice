@@ -223,7 +223,7 @@ class DnnBinaryClassifierClass:
             if i % 100 == 0:
                 self.costs.append(np.squeeze(cost))
                 if print_cost:
-                    print('---{0} Layer Model---Cost after iteration {0}: {1}'.format(self.L, i, cost))
+                    print('---{0} Layer Model---Cost after iteration {1}: {2}'.format(self.L, i, cost))
 
     def Predict(self, X):
         '''
