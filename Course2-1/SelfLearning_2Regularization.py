@@ -43,7 +43,7 @@ def model(X, Y, learning_rate=0.3, num_iterations=30000, print_cost=True, lambd=
     grads = {}
     costs = []
     m =X.shape[1]
-    layers_dims = [X.shape[0], 30, 3, 1]
+    layers_dims = [X.shape[0], 20, 3, 1]
 
     # Initialize parameters
     parameters = initialize_parameters(layers_dims)
@@ -55,7 +55,7 @@ def model(X, Y, learning_rate=0.3, num_iterations=30000, print_cost=True, lambd=
             A3, cache = forward_propagation(X, parameters)
         elif keep_prob < 1:
             A3, cache = forward_propagation_with_dropout(X, parameters, keep_prob)
-        
+
         # Cost function
         if lambd == 0:
             cost = compute_cost(A3, Y)
@@ -76,8 +76,8 @@ def model(X, Y, learning_rate=0.3, num_iterations=30000, print_cost=True, lambd=
 
         if i % 1000 == 0:
             costs.append(cost)
-            if print_cost:
-                print('Cost after iteration {}:{}'.format(i ,cost))
+        if print_cost and i % 10000 == 0:
+            print('Cost after iteration {}:{}'.format(i ,cost))
         
     plt.plot(costs)
     plt.ylabel('cost')
@@ -93,3 +93,221 @@ print ("On the training set:")
 predictions_train = predict(train_X, train_Y, parameters)
 print ("On the test set:")
 predictions_test = predict(test_X, test_Y, parameters)
+
+plt.title("Model without regularization")
+axes = plt.gca()
+axes.set_xlim([-0.75,0.40])
+axes.set_ylim([-0.75,0.65])
+plot_decision_boundary(lambda x: predict_dec(parameters, x.T), train_X, train_Y.ravel())
+
+
+#---------------------------
+# 2. L2-regularized Model
+#---------------------------
+def compute_cost_with_regularization(A3, Y, parameters, lambd):
+    '''
+    Implement the cost function with L2 regularization.
+
+    Arguments:
+    A3 -- post-activation, output of forward propagation, of shape (output size, number of examples)
+    Y -- "true" labels vector, of shape (output size, number of examples)
+    parameters -- python dictionary containing parameters of the model
+    
+    Returns:
+    cost - value of the regularized loss function
+    '''
+    m = Y.shape[1]
+    W1 = parameters['W1']
+    W2 = parameters['W2']
+    W3 = parameters['W3']
+
+    cross_entropy_cost = compute_cost(A3, Y)
+
+    L2_regularization_cost = 1.0 / m * lambd / 2.0 * (np.sum(np.square(W1)) + np.sum(np.square(W2)) + np.sum(np.square(W3)))
+
+    cost = cross_entropy_cost + L2_regularization_cost
+
+    return cost
+
+# Test the function
+A3, Y_assess, parameters = compute_cost_with_regularization_test_case()
+print('cost =', compute_cost_with_regularization(A3, Y_assess, parameters, lambd=0.1))
+
+def backward_propagation_with_regularization(X, Y, cache, lambd):
+    '''
+    Implements the backward propagation of with L2 regularization.
+
+    Arguments:
+    X -- input dataset, of shape (input size, number of examples)
+    Y -- "true" labels vector, of shape (output size, number of examples)
+    cache -- cache output from forward_propagation()
+    lambd -- regularization hyperparameter, scalar
+    
+    Returns:
+    gradients -- A dictionary with the gradients with respect to each parameter, activation and pre-activation variables
+    '''
+    m = X.shape[1]
+    (Z1, A1, W1, b1, Z2, A2, W2, b2, Z3, A3, W3, b3) = cache
+
+    dZ3 = A3 - Y
+    dW3 = 1.0 / m * np.dot(dZ3, A2.T) + lambd / m * W3
+    db3 = 1.0 / m * np.sum(dZ3, axis=1, keepdims=True)
+
+    dA2 = np.dot(W3.T, dZ3)
+    dZ2 = np.multiply(dA2, np.int64(A2 > 0))
+    dW2 = 1.0 / m * np.dot(dZ2, A1.T) + lambd / m * W2
+    db2 = 1.0 / m * np.sum(dZ2, axis=1, keepdims=True)
+
+    dA1 = np.dot(W2.T, dZ2)
+    dZ1 = np.multiply(dA1, np.int64(A1 > 0))
+    dW1 = 1.0 / m * np.dot(dZ1, X.T) + lambd / m * W1
+    db1 = 1.0 / m * np.sum(dZ1, axis=1, keepdims=True)
+
+    grads = {'dZ3':dZ3, 'dW3':dW3, 'db3':db3, 'dA2':dA2,
+             'dZ2':dZ2, 'dW2':dW2, 'db2':db2, 'dA1':dA1,
+             'dZ1':dZ1, 'dW1':dW1, 'db1':db1}
+    
+    return grads
+
+# Test the function
+X_assess, Y_assess, cache = backward_propagation_with_regularization_test_case()
+grads = backward_propagation_with_regularization(X_assess, Y_assess, cache, lambd=0.7)
+print('dW1 =', grads['dW1'])
+print('dW2 =', grads['dW2'])
+print('dW3 =', grads['dW3'])
+
+
+# Use L2-regularization model
+parameters = model(train_X, train_Y, lambd=0.7)
+print ("On the training set:")
+predictions_train = predict(train_X, train_Y, parameters)
+print ("On the test set:")
+predictions_test = predict(test_X, test_Y, parameters)
+
+
+plt.title("Model with L2-regularization")
+axes = plt.gca()
+axes.set_xlim([-0.75,0.40])
+axes.set_ylim([-0.75,0.65])
+plot_decision_boundary(lambda x: predict_dec(parameters, x.T), train_X, train_Y.ravel())
+
+
+
+#-----------------------------
+#3. Dropout-regularized Model
+#-----------------------------
+def forward_propagation_with_dropout(X, parameters, keep_prob=0.5):
+    '''
+    Implements the forward propagation.
+
+    Arguments:
+    X -- input dataset, of shape (2, number of examples)
+    parameters -- python dictionary containing your parameters "W1", "b1", "W2", "b2", "W3", "b3":
+                    W1 -- weight matrix of shape (20, 2)
+                    b1 -- bias vector of shape (20, 1)
+                    W2 -- weight matrix of shape (3, 20)
+                    b2 -- bias vector of shape (3, 1)
+                    W3 -- weight matrix of shape (1, 3)
+                    b3 -- bias vector of shape (1, 1)
+    keep_prob - probability of keeping a neuron active during drop-out, scalar
+    
+    Returns:
+    A3 -- last activation value, output of the forward propagation, of shape (1,1)
+    cache -- tuple, information stored for computing the backward propagation
+    '''
+    np.random.seed(1)
+
+    W1 = parameters['W1']
+    b1 = parameters['b1']
+    W2 = parameters['W2']
+    b2 = parameters['b2']
+    W3 = parameters['W3']
+    b3 = parameters['b3']
+
+    Z1 = np.dot(W1, X) + b1
+    A1 = relu(Z1)
+    D1 = np.random.rand(A1.shape[0], A1.shape[1])
+    D1 = (D1 < keep_prob)
+    A1 = A1 * D1
+    A1 = A1 / keep_prob
+
+    Z2 = np.dot(W2, A1) + b2
+    A2 = relu(Z2)
+    D2 = np.random.rand(A2.shape[0], A2.shape[1])
+    D2 = (D2 < keep_prob)
+    A2 = A2 * D2
+    A2 = A2 / keep_prob
+
+    Z3 = np.dot(W3, A2) + b3
+    A3 = sigmoid(Z3)
+
+    cache = (Z1, D1, A1, W1, b1, Z2, D2, A2, W2, b2, Z3, A3, W3, b3)
+
+    return A3, cache
+
+# Test the function
+X_assess, parameters = forward_propagation_with_dropout_test_case()
+A3, cache = forward_propagation_with_dropout(X_assess, parameters, keep_prob=0.7)
+print('A3 =', A3)
+
+
+def backward_propagation_with_dropout(X, Y, cache, keep_prob):
+    '''
+    Implements the backward propagation of droppout model.
+
+    Arguments:
+    X -- input dataset, of shape (2, number of examples)
+    Y -- "true" labels vector, of shape (output size, number of examples)
+    cache -- cache output from forward_propagation_with_dropout()
+    keep_prob - probability of keeping a neuron active during drop-out, scalar
+    
+    Returns:
+    gradients -- A dictionary with the gradients with respect to each parameter, activation and pre-activation variables
+    '''
+    m = X.shape[1]
+    (Z1, D1, A1, W1, b1, Z2, D2, A2, W2, b2, Z3, A3, W3, b3) = cache
+
+    dZ3 = A3 - Y
+    dW3 = 1.0 / m * np.dot(dZ3, A2.T)
+    db3 = 1.0 / m * np.sum(dZ3, axis=1, keepdims=True)
+
+    dA2 = np.dot(W3.T, dZ3)
+    dA2 = dA2 * D2
+    dA2 = dA2 / keep_prob
+    dZ2 = np.multiply(dA2, np.int64(A2 > 0))
+    dW2 = 1.0 / m * np.dot(dZ2, A1.T)
+    db2 = 1.0 / m * np.sum(dZ2, axis=1, keepdims=True)
+
+    dA1 = np.dot(W2.T, dZ2)
+    dA1 = dA1 * D1
+    dA1 = dA1 / keep_prob
+    dZ1 = np.multiply(dA1, np.int64(A1 > 0))
+    dW1 = 1.0 / m * np.dot(dZ1, X.T)
+    db1 = 1.0 / m * np.sum(dZ1, axis=1, keepdims=True)
+
+    grads = {'dZ3':dZ3, 'dW3':dW3, 'db3':db3, 'dA2':dA2,
+             'dZ2':dZ2, 'dW2':dW2, 'db2':db2, 'dA1':dA1,
+             'dZ1':dZ1, 'dW1':dW1, 'db1':db1}
+    
+    return grads
+
+# Test the function
+X_assess, Y_assess, cache = backward_propagation_with_dropout_test_case()
+grads = backward_propagation_with_dropout(X_assess, Y_assess, cache, keep_prob=0.8)
+print('dA1 =', grads['dA1'])
+print('dA2 =', grads['dA2'])
+
+
+# Use Dropout-regularization model
+parameters = model(train_X, train_Y, keep_prob=0.86, learning_rate=0.3)
+print ("On the training set:")
+predictions_train = predict(train_X, train_Y, parameters)
+print ("On the test set:")
+predictions_test = predict(test_X, test_Y, parameters)
+
+
+plt.title("Model with Dropout-regularization")
+axes = plt.gca()
+axes.set_xlim([-0.75,0.40])
+axes.set_ylim([-0.75,0.65])
+plot_decision_boundary(lambda x: predict_dec(parameters, x.T), train_X, train_Y.ravel())
