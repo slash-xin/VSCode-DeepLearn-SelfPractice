@@ -192,6 +192,9 @@ def gradient_check_n(parameters, grads, X, Y, epsilon=1e-7):
 
     for i in range(num_parameters):
         thetaplus = np.copy(parameters_values)
+        thetaplus[i][0] = thetaplus[i][0] + epsilon
+        J_plus[i], _ = forward_propagation_n(X, Y, vector_to_dictionary(thetaplus))
+        
 
 #Test the function
 X, Y, parameters = gradient_check_n_test_case()
