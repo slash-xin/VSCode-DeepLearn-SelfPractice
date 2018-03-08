@@ -55,7 +55,7 @@ def model(X, Y, learning_rate=0.3, num_iterations=30000, print_cost=True, lambd=
             A3, cache = forward_propagation(X, parameters)
         elif keep_prob < 1:
             A3, cache = forward_propagation_with_dropout(X, parameters, keep_prob)
-
+        
         # Cost function
         if lambd == 0:
             cost = compute_cost(A3, Y)
@@ -175,16 +175,12 @@ grads = backward_propagation_with_regularization(X_assess, Y_assess, cache, lamb
 print('dW1 =', grads['dW1'])
 print('dW2 =', grads['dW2'])
 print('dW3 =', grads['dW3'])
-
-
 # Use L2-regularization model
 parameters = model(train_X, train_Y, lambd=0.7)
 print ("On the training set:")
 predictions_train = predict(train_X, train_Y, parameters)
 print ("On the test set:")
 predictions_test = predict(test_X, test_Y, parameters)
-
-
 plt.title("Model with L2-regularization")
 axes = plt.gca()
 axes.set_xlim([-0.75,0.40])

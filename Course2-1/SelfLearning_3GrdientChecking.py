@@ -155,7 +155,7 @@ def backward_propagation_n(X, Y, cache):
     
     dA2 = np.dot(W3.T, dZ3)
     dZ2 = np.multiply(dA2, np.int64(A2 > 0))
-    dW2 = 1.0 / m * np.dot(dZ2, A1.T) * 2
+    dW2 = 1.0 / m * np.dot(dZ2, A1.T)
     db2 = 1.0 / m * np.sum(dZ2, axis=1, keepdims = True)
     
     dA1 = np.dot(W2.T, dZ2)
@@ -188,13 +188,27 @@ def gradient_check_n(parameters, grads, X, Y, epsilon=1e-7):
     num_parameters = parameters_values.shape[0]
     J_plus = np.zeros((num_parameters, 1))
     J_minus = np.zeros((num_parameters, 1))
-    gradapprox = np.zeros((num_parameters, 1))
+    gradsapprox = np.zeros((num_parameters, 1))
 
     for i in range(num_parameters):
         thetaplus = np.copy(parameters_values)
         thetaplus[i][0] = thetaplus[i][0] + epsilon
         J_plus[i], _ = forward_propagation_n(X, Y, vector_to_dictionary(thetaplus))
         
+        thetaminus = np.copy(parameters_values)
+        thetaminus[i][0] = thetaminus[i][0] - epsilon
+        J_minus[i], _ = forward_propagation_n(X, Y, vector_to_dictionary(thetaminus))
+
+        gradsapprox[i] = (J_plus[i] - J_minus[i]) / (2 * epsilon)
+
+    numeretor = np.linalg.norm(grads_value - gradsapprox)
+    denominator = np.linalg.norm(grads_value) + np.linalg.norm(gradsapprox)
+    difference = numeretor / denominator
+
+    if difference > 1e-7:
+        print('There is a mistake in the backward propagation! difference = {}'.format(difference))
+    else:
+        print('Your backward propagation worlks perfectly fine! difference = {}'.format(difference))
 
 #Test the function
 X, Y, parameters = gradient_check_n_test_case()
